@@ -1,7 +1,9 @@
+import "./globals.css";
+
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+
 import { env } from "@/lib/env";
-import "./globals.css";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -17,17 +19,13 @@ export const metadata: Metadata = {
   metadataBase: new URL(env.NEXT_PUBLIC_APP_URL),
   title: env.NEXT_PUBLIC_APP_NAME,
   description:
-      "Track your practice habits, scales and technical exercises, and see your progress over time.",
+    "Track your practice habits, scales and technical exercises, and see your progress over time.",
 };
 
-export default function RootLayout({
-                                     children,
-                                   }: Readonly<{ children: React.ReactNode }>) {
+export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-      <html lang="en">
-      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
-      {children}
-      </body>
-      </html>
+    <html lang="en">
+      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>{children}</body>
+    </html>
   );
 }
