@@ -1,0 +1,60 @@
+name: Bug report
+description: Report something that is not working as expected
+title: "[Bug] "
+labels:
+  - bug
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to report a bug. The more detail you give, the faster it can be fixed.
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      description: Which part of the app is affected?
+      options:
+        - Dashboard / heat map / streaks
+        - Scales
+        - Exercises (Hanon / Czerny / custom)
+        - Analytics / charts
+        - Authentication / settings
+        - Metronome
+        - Tooling / CI / build
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: Describe the bug and what you expected to happen instead.
+      placeholder: When I log a practice session, the streak does not update.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: Numbered steps that reliably trigger the problem.
+      value: |
+        1. Go to '...'
+        2. Click on '...'
+        3. See the error
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Screenshots, logs or console output
+      description: Paste or drag in anything that helps. It is rendered as code automatically.
+      render: shell
+    validations:
+      required: false
+  - type: input
+    id: environment
+    attributes:
+      label: Environment
+      description: Browser and version, operating system, device (for example "Chrome 130, Windows 11, desktop").
+    validations:
+      required: true
