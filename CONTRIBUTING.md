@@ -36,3 +36,15 @@ end-to-end (E2E) tests.
 - Add or update an E2E test when you change a critical user journey (sign-up, logging practice,
   tracking a scale or exercise).
 - Every pull request must keep `npm test` and `npm run test:e2e` passing.
+
+## Continuous integration
+
+Every pull request runs two GitHub Actions jobs, defined in `.github/workflows/ci.yml`:
+
+- **Quality**: formatting check, ESLint, TypeScript, unit tests with coverage and a production
+  build.
+- **E2E**: Playwright tests against a production build, with a Postgres service container.
+
+Both jobs must pass before a pull request can be merged, and it needs one approving review.
+Run the same checks locally with `npm run verify` and `npm run test:e2e`. Coverage and Playwright
+reports are attached to every run as downloadable artifacts.
