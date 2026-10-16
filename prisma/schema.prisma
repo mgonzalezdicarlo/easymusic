@@ -7,12 +7,27 @@ datasource db {
   provider = "postgresql"
 }
 
-// Bootstrap model that proves the migration pipeline end to end.
-// E2-02 extends it with timezone, daily goal and the rest of the data model.
 model User {
-  id        String   @id @default(cuid())
-  email     String   @unique
-  createdAt DateTime @default(now())
+  id               String            @id @default(cuid())
+  email            String            @unique
+  name             String
+  timezone         String            @default("UTC")
+  dailyGoalMinutes Int               @default(30)
+  createdAt        DateTime          @default(now())
+  practiceSessions PracticeSession[]
 
   @@map("users")
+}
+
+model PracticeSession {
+  id              String   @id @default(cuid())
+  userId          String
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  date            DateTime @db.Date
+  durationMinutes Int
+  notes           String?
+  createdAt       DateTime @default(now())
+
+  @@index([userId, date])
+  @@map("practice_sessions")
 }

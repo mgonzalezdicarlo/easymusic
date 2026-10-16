@@ -12,6 +12,7 @@ choice, and its consequences. Together they explain _why_ the project looks the 
 | [0003](./0003-postgresql-and-prisma.md)         | Use PostgreSQL with Prisma for data storage               | Accepted |
 | [0004](./0004-better-auth-authentication.md)    | Use Better Auth for authentication                        | Accepted |
 | [0005](./0005-recharts-for-charts.md)           | Use Recharts for analytics charts                         | Accepted |
+| [0006](./0006-practice-session-date-storage.md) | Store practice session dates as local calendar dates      | Proposed |
 
 ## When to write one
 
