@@ -4,10 +4,11 @@ Thanks for helping build the Piano Habit Tracker. This guide explains how we wor
 
 ## Getting started
 
-1. Install Node.js 22 (see `.nvmrc`) and Git.
-2. Clone the repository and run `npm install`. This also installs the Git hooks.
-3. Copy `.env.example` to `.env.local`.
-4. Run `npm run dev`, then open http://localhost:3000.
+1. Install Node.js 22 (see `.nvmrc`), Git and Docker Desktop.
+2. Clone the repository and copy `.env.example` to `.env.local`.
+3. Run `npm install`. This installs the Git hooks and generates the Prisma client.
+4. Run `npm run db:up` to start PostgreSQL, then `npm run db:migrate` to apply the migrations.
+5. Run `npm run dev`, then open http://localhost:3000.
 
 Work is planned as GitHub issues grouped into milestones (one per epic). Pick an open issue, or open
 one using the bug or feature template, before you start coding.

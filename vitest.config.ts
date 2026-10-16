@@ -20,6 +20,7 @@ export default defineConfig({
     env: {
       NEXT_PUBLIC_APP_NAME: "Piano Habit Tracker",
       NEXT_PUBLIC_APP_URL: "http://localhost:3000",
+      DATABASE_URL: "postgresql://piano:piano@localhost:5432/piano_test",
     },
     coverage: {
       provider: "v8",
@@ -31,9 +32,13 @@ export default defineConfig({
         "src/**/*.d.ts",
         // Generated shadcn/ui primitives are not our code to test.
         "src/components/ui/**",
+        // Generated Prisma client.
+        "src/generated/**",
         // Pages and layouts are covered by the Playwright end-to-end tests.
         "src/app/**",
         "src/instrumentation.ts",
+        // Thin wrapper around the database driver, covered by the E2E health check.
+        "src/server/db.ts",
       ],
     },
   },
