@@ -1,49 +1,128 @@
+# Piano Habit Tracker
+
+A web app that helps pianists build a practice habit and measure real technical progress. Log your
+practice, track every scale and exercise with clean versus maximum tempo, and see your progress in a
+GitHub-style activity heat map and in charts.
+
+> **Status:** early development. The project foundation (Epic 1) is in place, and features are being
+> built epic by epic.
+
 ## Features
 
-One folder per product feature (for example `scales`, `exercises`, `dashboard`).
-Each feature owns its UI components, hooks, schemas and domain logic:
+- **Activity heat map and streaks:** a GitHub-style practice grid with current and longest streak.
+- **Scale tracker:** catalog scales by key and mode, with octaves (1-4), hands (separate or
+  together), target BPM and current clean BPM.
+- **Hanon and Czerny module:** Hanon exercises 1-60 pre-loaded, plus your own custom exercises, with
+  BPM tracking.
+- **Analytics:** BPM progression line charts and practice time distribution charts.
+- **Clean versus max tempo:** every entry records both the tempo you play cleanly and the fastest you
+  reached.
+- **Embedded metronome** (optional) and a **neglected scales** reminder.
 
-    src/features/scales/
-      components/
-      lib/
-      schemas.ts
+## Roadmap
 
-Shared, feature-agnostic UI goes in `src/components`. Server-only code
-(database access, services) goes in `src/server`. Generic helpers go in `src/lib`.
+| Epic | Scope                                      | Status  |
+| ---- | ------------------------------------------ | ------- |
+| 1    | Project setup and architecture             | Done    |
+| 2    | Data models, database and backend API      | Planned |
+| 3    | Authentication and dashboard               | Planned |
+| 4    | Scale tracker                              | Planned |
+| 5    | Hanon and technical exercises              | Planned |
+| 6    | Progress analytics and charts              | Planned |
+| 7    | Metronome, neglected scales system, polish | Planned |
 
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+## Tech stack
 
-## Getting Started
+- [Next.js](https://nextjs.org) (App Router), React 19 and TypeScript (strict)
+- Tailwind CSS and shadcn/ui
+- Zod for validation
+- Vitest, Testing Library and Playwright for testing
+- GitHub Actions for CI
 
-First, run the development server:
+Planned in later epics: PostgreSQL with Prisma, Better Auth and Recharts. See the
+[architecture notes](./docs/architecture.md) and the [decision records](./docs/adr/README.md).
+
+## Getting started
+
+### Requirements
+
+- Node.js 22 (see `.nvmrc`; Node 20.9 or newer works)
+- npm
+- Git
+
+No database is needed yet. PostgreSQL arrives in Epic 2.
+
+### Setup
+
+```bash
+git clone https://github.com/mgonzalezdicarlo/ThePianoProject.git
+cd ThePianoProject
+npm install
+```
+
+Create your local environment file. On macOS and Linux use `cp`; in PowerShell, `cp` also works, or
+use `Copy-Item`:
+
+```bash
+cp .env.example .env.local
+```
+
+Start the development server and open http://localhost:3000:
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### Environment variables
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Copy `.env.example` to `.env.local`. The app validates these at startup and stops with a clear
+message if one is missing or invalid.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| Variable               | Required | Description                                                |
+| ---------------------- | -------- | ---------------------------------------------------------- |
+| `NEXT_PUBLIC_APP_URL`  | Yes      | Public URL of the app, for example `http://localhost:3000` |
+| `NEXT_PUBLIC_APP_NAME` | No       | Display name. Defaults to `Piano Habit Tracker`            |
 
-## Learn More
+## Scripts
 
-To learn more about Next.js, take a look at the following resources:
+| Script                  | What it does                                                   |
+| ----------------------- | -------------------------------------------------------------- |
+| `npm run dev`           | Start the development server                                   |
+| `npm run build`         | Create a production build                                      |
+| `npm start`             | Serve the production build                                     |
+| `npm run lint`          | Run ESLint (zero warnings allowed)                             |
+| `npm run lint:fix`      | Run ESLint and fix what it can                                 |
+| `npm run format`        | Format all files with Prettier                                 |
+| `npm run format:check`  | Check formatting without changing files                        |
+| `npm run typecheck`     | Run the TypeScript compiler without emitting files             |
+| `npm test`              | Run unit and component tests once                              |
+| `npm run test:watch`    | Run tests in watch mode                                        |
+| `npm run test:coverage` | Run tests and generate a coverage report in `coverage/`        |
+| `npm run test:e2e`      | Run the Playwright end-to-end tests                            |
+| `npm run verify`        | Format check, lint, typecheck, tests and build: the same as CI |
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Before the first E2E run, install the browser once with `npx playwright install chromium`.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Project structure
 
-## Deploy on Vercel
+```
+src/
+    app/          Routes, layouts and pages
+    components/   Shared UI (ui/ holds the shadcn/ui primitives)
+    features/     One folder per product feature
+lib/              Generic helpers and environment validation
+server/           Server-only code
+e2e/              Playwright end-to-end tests
+docs/             Architecture notes and decision records
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Quality
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Pull requests must pass formatting, linting, type checking, unit tests, a production build and E2E
+tests in GitHub Actions. Git hooks (Husky) format and lint staged files and enforce
+[Conventional Commits](https://www.conventionalcommits.org).
+
+## Contributing
+
+Read [CONTRIBUTING.md](./CONTRIBUTING.md) for the branching model, commit style, testing
+conventions and the pull request checklist.
