@@ -1,7 +1,7 @@
+import "./globals.css";
+
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
-
-import "./globals.css";
 
 import { Providers } from "@/components/providers";
 import { env } from "@/lib/env";
