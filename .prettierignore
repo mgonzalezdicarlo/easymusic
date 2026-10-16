@@ -1,0 +1,12 @@
+.next
+node_modules
+coverage
+out
+build
+public
+package-lock.json
+next-env.d.ts
+.husky/_
+playwright-report
+test-results
+blob-report
