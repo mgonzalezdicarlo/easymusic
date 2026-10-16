@@ -75,6 +75,18 @@ docs/             Architecture notes and ADRs.
   missing or invalid.
 - Secrets will be added in `src/server/env.ts` so they cannot reach the client bundle.
 
+## Database access
+
+- `prisma/schema.prisma` is the single source of truth for the data model. Migrations are generated
+  with `npm run db:migrate`, committed to `prisma/migrations`, and applied with `npm run db:deploy`.
+- Prisma 7 requires a driver adapter. `src/server/db.ts` creates one shared `PrismaClient` with
+  `@prisma/adapter-pg`, kept on `globalThis` in development so hot reloading does not open a new
+  connection pool on every change.
+- The generated client lives in `src/generated/prisma` and is rebuilt by `postinstall`. It is never
+  committed.
+- `DATABASE_URL` is validated in `src/server/env.ts`. The server refuses to start without it.
+- Only server code imports `@/server/db`. Client components never touch the database.
+
 ## Planned data model
 
 Defined in Epic 2 and refined in its own ADRs:

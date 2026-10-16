@@ -19,6 +19,9 @@ env:
   NEXT_TELEMETRY_DISABLED: "1"
   NEXT_PUBLIC_APP_NAME: Piano Habit Tracker
   NEXT_PUBLIC_APP_URL: http://localhost:3000
+  # Required by `prisma generate` (postinstall) and by the build. Only the E2E job has a
+  # running database behind this URL.
+  DATABASE_URL: postgresql://piano:piano@localhost:5432/piano_test
 
 jobs:
   quality:
@@ -74,8 +77,6 @@ jobs:
     name: E2E
     runs-on: ubuntu-latest
     timeout-minutes: 15
-    env:
-      DATABASE_URL: postgresql://piano:piano@localhost:5432/piano_test
     services:
       postgres:
         image: postgres:17-alpine
@@ -102,6 +103,9 @@ jobs:
 
       - name: Install dependencies
         run: npm ci
+
+      - name: Apply database migrations
+        run: npm run db:deploy
 
       - name: Get Playwright version
         id: playwright-version

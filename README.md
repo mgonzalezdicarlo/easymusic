@@ -35,43 +35,76 @@ GitHub-style activity heat map and in charts.
 
 - [Next.js](https://nextjs.org) (App Router), React 19 and TypeScript (strict)
 - Tailwind CSS and shadcn/ui
+- PostgreSQL and Prisma
 - Zod for validation
 - Vitest, Testing Library and Playwright for testing
 - GitHub Actions for CI
 
-Planned in later epics: PostgreSQL with Prisma, Better Auth and Recharts. See the
+Planned in later epics: Better Auth and Recharts. See the
 [architecture notes](./docs/architecture.md) and the [decision records](./docs/adr/README.md).
 
 ## Getting started
 
 ### Requirements
 
-- Node.js 22 (see `.nvmrc`; Node 20.9 or newer works)
+- Node.js 22 (see `.nvmrc`; Node 20.19 or newer works)
 - npm
 - Git
-
-No database is needed yet. PostgreSQL arrives in Epic 2.
+- [Docker Desktop](https://www.docker.com/products/docker-desktop/) (PostgreSQL runs in a container)
 
 ### Setup
 
 ```bash
 git clone https://github.com/mgonzalezdicarlo/ThePianoProject.git
 cd ThePianoProject
-npm install
-```
-
-Create your local environment file. On macOS and Linux use `cp`; in PowerShell, `cp` also works, or
-use `Copy-Item`:
-
-```bash
 cp .env.example .env.local
-```
-
-Start the development server and open http://localhost:3000:
-
-```bash
+npm install
+npm run db:up
+npm run db:migrate
 npm run dev
 ```
+
+Open http://localhost:3000. In PowerShell, use `Copy-Item .env.example .env.local` if `cp` is not
+available.
+
+Create `.env.local` **before** `npm install`: installing generates the Prisma client, which reads
+`DATABASE_URL`.
+
+### Environment variables
+
+Copy `.env.example` to `.env.local`. The app validates these at startup and stops with a clear
+message if one is missing or invalid.
+
+| Variable               | Required | Description                                                |
+| ---------------------- | -------- | ---------------------------------------------------------- |
+| `NEXT_PUBLIC_APP_URL`  | Yes      | Public URL of the app, for example `http://localhost:3000` |
+| `NEXT_PUBLIC_APP_NAME` | No       | Display name. Defaults to `Piano Habit Tracker`            |
+| `DATABASE_URL`         | Yes      | PostgreSQL connection string (server only)                 |
+
+## Database
+
+PostgreSQL 17 runs in Docker Compose (`docker-compose.yml`) and is accessed with Prisma. Make sure
+Docker Desktop is running, then:
+
+| Script                                                                                       | What it does                                                                  |
+| -------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------- |
+| `npm run db:up`                                                                              | Start PostgreSQL and wait until it is healthy                                 |
+| `npm run db:down`                                                                            | Stop PostgreSQL (data is kept)                                                |
+| `npm run db:migrate`                                                                         | Create and apply migrations in development. Name a new one with `-- --name x` |
+| `npm run db:deploy`                                                                          | Apply existing migrations without creating new ones (CI and production)       |
+| `npm run db:generate`                                                                        | Regenerate the Prisma client (also runs on `npm install`)                     |
+| `npm run db:reset`                                                                           | Drop the database, re-apply all migrations and run the seed                   |
+| `npm run db:seed`                                                                            | Run `prisma/seed.ts`                                                          |
+| `npm run db:studio`                                                                          | Open Prisma Studio at http://localhost:5555                                   |
+| `npm run test:e2e` needs the database running (`npm run db:up`) because of the health check. |
+
+- The default connection is `postgresql://piano:piano@localhost:5432/piano`. Data lives in a Docker
+  volume and survives restarts. `docker compose down -v` deletes it.
+- The schema is in `prisma/schema.prisma`, and the generated client in `src/generated/prisma`
+  (ignored by Git). Import the shared client from `@/server/db`.
+- **Port 5432 already in use?** Stop your local PostgreSQL service, or change the port in
+  `docker-compose.yml` (for example `127.0.0.1:5433:5432`) and in `DATABASE_URL`.
+- `GET /api/health` returns `{"status":"ok","database":"up"}` when the app can reach the database.
 
 ### Environment variables
 
