@@ -7,6 +7,30 @@ datasource db {
   provider = "postgresql"
 }
 
+enum ScaleMode {
+  MAJOR
+  NATURAL_MINOR
+  HARMONIC_MINOR
+  MELODIC_MINOR
+  DORIAN
+  PHRYGIAN
+  LYDIAN
+  MIXOLYDIAN
+  LOCRIAN
+}
+
+enum HandsMode {
+  SEPARATE
+  TOGETHER
+}
+
+// Stored tracking state shared by tracked scales and (E2-04) tracked exercises.
+// "Learning / Improving / Mastered" is derived from BPM data, never stored.
+enum TrackingStatus {
+  ACTIVE
+  ARCHIVED
+}
+
 model User {
   id               String            @id @default(cuid())
   email            String            @unique
@@ -15,19 +39,73 @@ model User {
   dailyGoalMinutes Int               @default(30)
   createdAt        DateTime          @default(now())
   practiceSessions PracticeSession[]
+  userScales       UserScale[]
 
   @@map("users")
 }
 
 model PracticeSession {
-  id              String   @id @default(cuid())
+  id              String               @id @default(cuid())
   userId          String
-  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  date            DateTime @db.Date
+  user            User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  date            DateTime             @db.Date
   durationMinutes Int
   notes           String?
-  createdAt       DateTime @default(now())
+  createdAt       DateTime             @default(now())
+  scaleEntries    ScalePracticeEntry[]
 
   @@index([userId, date])
   @@map("practice_sessions")
+}
+
+// Global, read-only catalog: one row per tonic + mode. Seeded in E2-05.
+// CHECK in migration: tonic matches ^[A-G][#b]?$
+model Scale {
+  id         String      @id @default(cuid())
+  tonic      String
+  mode       ScaleMode
+  userScales UserScale[]
+
+  @@unique([tonic, mode])
+  @@map("scales")
+}
+
+// A scale a user tracks, in one configuration (octaves x hands mode).
+// CHECK in migration: octaves 1-4, targetBpm 20-300.
+model UserScale {
+  id        String               @id @default(cuid())
+  userId    String
+  user      User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  scaleId   String
+  scale     Scale                @relation(fields: [scaleId], references: [id], onDelete: Restrict)
+  octaves   Int
+  handsMode HandsMode
+  targetBpm Int
+  status    TrackingStatus       @default(ACTIVE)
+  createdAt DateTime             @default(now())
+  entries   ScalePracticeEntry[]
+
+  @@unique([userId, scaleId, octaves, handsMode])
+  @@index([scaleId])
+  @@map("user_scales")
+}
+
+// One practice of a tracked scale inside a session.
+// CHECK in migration: cleanBpm and maxBpm 20-300, maxBpm >= cleanBpm, durationMinutes 0-1440.
+// practicedAt is a UTC instant used for ordering only; the calendar day is session.date (ADR-0006).
+model ScalePracticeEntry {
+  id              String          @id @default(cuid())
+  userScaleId     String
+  userScale       UserScale       @relation(fields: [userScaleId], references: [id], onDelete: Cascade)
+  sessionId       String
+  session         PracticeSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  cleanBpm        Int
+  maxBpm          Int
+  durationMinutes Int
+  notes           String?
+  practicedAt     DateTime        @default(now())
+
+  @@index([userScaleId, practicedAt])
+  @@index([sessionId])
+  @@map("scale_practice_entries")
 }
