@@ -24,11 +24,19 @@ enum HandsMode {
   TOGETHER
 }
 
-// Stored tracking state shared by tracked scales and (E2-04) tracked exercises.
+// Stored tracking state shared by tracked scales and tracked exercises.
 // "Learning / Improving / Mastered" is derived from BPM data, never stored.
 enum TrackingStatus {
   ACTIVE
   ARCHIVED
+}
+
+// Where an exercise comes from. HANON rows are the shared catalog (no owner). CZERNY and
+// CUSTOM rows are created by, and belong to, one user.
+enum ExerciseSource {
+  HANON
+  CZERNY
+  CUSTOM
 }
 
 model User {
@@ -40,19 +48,22 @@ model User {
   createdAt        DateTime          @default(now())
   practiceSessions PracticeSession[]
   userScales       UserScale[]
+  ownedExercises   Exercise[]
+  userExercises    UserExercise[]
 
   @@map("users")
 }
 
 model PracticeSession {
-  id              String               @id @default(cuid())
+  id              String                  @id @default(cuid())
   userId          String
-  user            User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
-  date            DateTime             @db.Date
+  user            User                    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  date            DateTime                @db.Date
   durationMinutes Int
   notes           String?
-  createdAt       DateTime             @default(now())
+  createdAt       DateTime                @default(now())
   scaleEntries    ScalePracticeEntry[]
+  exerciseEntries ExercisePracticeEntry[]
 
   @@index([userId, date])
   @@map("practice_sessions")
@@ -108,4 +119,65 @@ model ScalePracticeEntry {
   @@index([userScaleId, practicedAt])
   @@index([sessionId])
   @@map("scale_practice_entries")
+}
+
+// Exercises (E2-04). HANON rows are the shared, read-only catalog and have no owner. CZERNY and
+// CUSTOM rows are created by one user, who owns them and is the only one who can see them.
+// CHECK in migration: HANON <=> ownerId IS NULL, Hanon number 1-60, number > 0, targetBpm 20-300.
+// Partial unique index in migration: one catalog row per (source, number) where ownerId IS NULL.
+// number is the Hanon number, or an optional study number for Czerny and custom exercises.
+model Exercise {
+  id            String         @id @default(cuid())
+  source        ExerciseSource
+  number        Int?
+  title         String
+  description   String?
+  targetBpm     Int?
+  ownerId       String?
+  owner         User?          @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  userExercises UserExercise[]
+
+  @@unique([ownerId, source, number])
+  @@map("exercises")
+}
+
+// An exercise a user tracks, once per user. Hands and transposition are optional details of an
+// entry, not part of the tracking identity.
+// CHECK in migration: targetBpm 20-300.
+// The exercise must be visible to the user (catalog or their own); queries use
+// visibleExercisesWhere from src/server/exercises/access.ts.
+model UserExercise {
+  id         String                  @id @default(cuid())
+  userId     String
+  user       User                    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  exerciseId String
+  exercise   Exercise                @relation(fields: [exerciseId], references: [id], onDelete: Cascade)
+  targetBpm  Int
+  status     TrackingStatus          @default(ACTIVE)
+  createdAt  DateTime                @default(now())
+  entries    ExercisePracticeEntry[]
+
+  @@unique([userId, exerciseId])
+  @@index([exerciseId])
+  @@map("user_exercises")
+}
+
+// One practice of a tracked exercise inside a session. Mirrors ScalePracticeEntry.
+// CHECK in migration: cleanBpm and maxBpm 20-300, maxBpm >= cleanBpm, durationMinutes 0-1440.
+// practicedAt is a UTC instant used for ordering only; the calendar day is session.date (ADR-0006).
+model ExercisePracticeEntry {
+  id              String          @id @default(cuid())
+  userExerciseId  String
+  userExercise    UserExercise    @relation(fields: [userExerciseId], references: [id], onDelete: Cascade)
+  sessionId       String
+  session         PracticeSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  cleanBpm        Int
+  maxBpm          Int
+  durationMinutes Int
+  notes           String?
+  practicedAt     DateTime        @default(now())
+
+  @@index([userExerciseId, practicedAt])
+  @@index([sessionId])
+  @@map("exercise_practice_entries")
 }
