@@ -1,7 +1,8 @@
 # Entity relationship diagram
 
-Current database model (Epic 2, issues E2-02 and E2-03). The exercise tables are added by E2-04. Date
-storage rules are in [ADR-0006](./adr/0006-practice-session-date-storage.md).
+Current database model (Epic 2, issues E2-02 to E2-04). Date storage rules are in
+[ADR-0006](./adr/0006-practice-session-date-storage.md). How to add catalog exercises is in
+[exercise-catalog.md](./exercise-catalog.md).
 
 ```mermaid
 erDiagram
@@ -10,6 +11,11 @@ erDiagram
   scales ||--o{ user_scales : "is tracked as"
   user_scales ||--o{ scale_practice_entries : "has history"
   practice_sessions ||--o{ scale_practice_entries : "contains"
+  users ||--o{ exercises : "owns (custom and Czerny only)"
+  users ||--o{ user_exercises : "tracks"
+  exercises ||--o{ user_exercises : "is tracked as"
+  user_exercises ||--o{ exercise_practice_entries : "has history"
+  practice_sessions ||--o{ exercise_practice_entries : "contains"
 
   users {
     string id PK
@@ -56,7 +62,39 @@ erDiagram
     string notes "optional"
     datetime practicedAt "UTC instant, ordering only"
   }
+
+  exercises {
+    string id PK
+    string source "HANON, CZERNY or CUSTOM"
+    int number "optional; Hanon 1-60"
+    string title
+    string description "optional"
+    int targetBpm "optional, 20-300"
+    string ownerId FK "null for HANON, required otherwise; cascade on delete"
+  }
+
+  user_exercises {
+    string id PK
+    string userId FK "cascade on delete"
+    string exerciseId FK "cascade on delete"
+    int targetBpm "20-300"
+    string status "ACTIVE or ARCHIVED"
+    datetime createdAt
+  }
+
+  exercise_practice_entries {
+    string id PK
+    string userExerciseId FK "cascade on delete"
+    string sessionId FK "cascade on delete"
+    int cleanBpm "20-300"
+    int maxBpm "20-300, >= cleanBpm"
+    int durationMinutes "0-1440"
+    string notes "optional"
+    datetime practicedAt "UTC instant, ordering only"
+  }
 ```
 
 `user_scales` is unique on `(userId, scaleId, octaves, handsMode)`, and `scales` is unique on
-`(tonic, mode)`.
+`(tonic, mode)`. `user_exercises` is unique on `(userId, exerciseId)`. `exercises` is unique on
+`(ownerId, source, number)` for owned rows, and a partial unique index on `(source, number)` covers
+catalog rows, where `ownerId` is null.
