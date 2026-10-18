@@ -66,6 +66,7 @@ Do not bypass the hooks with `--no-verify`. If a hook fails, fix the reported pr
 - Validate all external input (API requests, environment variables) with Zod.
 - Never commit secrets or `.env` files. When you add an environment variable, update both
   `.env.example` and `src/lib/env.ts`.
+- Build API endpoints with the helpers in `src/server/api` and follow the [API conventions](./docs/api-conventions.md).
 
 ## Pull requests
 

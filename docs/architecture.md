@@ -87,6 +87,16 @@ docs/             Architecture notes and ADRs.
 - `DATABASE_URL` is validated in `src/server/env.ts`. The server refuses to start without it.
 - Only server code imports `@/server/db`. Client components never touch the database.
 
+## API layer
+
+- Endpoints are Next.js route handlers in `src/app/api`, validated with Zod
+  ([ADR-0007](./adr/0007-route-handlers-and-zod-api.md)).
+  - Shared helpers live in `src/server/api`: `apiHandler`, `ApiError`, the parse helpers, pagination
+    and response builders. Logging is in `src/server/logger.ts`, and `requireUser()` in
+    `src/server/auth`.
+  - Every endpoint returns the same success and error shapes. See
+    [api-conventions.md](./api-conventions.md).
+
 ## Planned data model
 
 Defined in Epic 2 and refined in its own ADRs:
