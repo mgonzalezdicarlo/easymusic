@@ -1,7 +1,7 @@
 import { fileURLToPath } from "node:url";
 
 import react from "@vitejs/plugin-react";
-import { defineConfig } from "vitest/config";
+import { configDefaults, defineConfig } from "vitest/config";
 
 export default defineConfig({
   plugins: [react()],
@@ -15,6 +15,8 @@ export default defineConfig({
     setupFiles: ["./vitest.setup.ts"],
     // Only unit/integration tests under src. End-to-end tests live in /e2e and run with Playwright.
     include: ["src/**/*.{test,spec}.{ts,tsx}"],
+    // Integration tests need PostgreSQL. Run them with `npm run test:integration`.
+    exclude: [...configDefaults.exclude, "src/**/*.integration.test.ts"],
     restoreMocks: true,
     unstubEnvs: true,
     env: {

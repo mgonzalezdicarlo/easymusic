@@ -113,6 +113,7 @@ end-to-end (E2E) tests.
 - `npm run test:watch`: re-run tests on file changes while developing.
 - `npm run test:coverage`: run tests and generate a coverage report in `coverage/` (open
   `coverage/index.html`).
+- `npm run test:integration`: run the `*.integration.test.ts` API tests against the `piano_test` database. They are excluded from `npm test`. It needs PostgreSQL (`npm run db:up`), creates the database and applies migrations on the first run, and refuses any database name not ending in `_test`.
 - `npm run test:e2e`: run the Playwright E2E tests. It starts the app automatically, or reuses a
   dev server that is already running on port 3000.
 - `npx playwright test --ui`: debug E2E tests interactively.
