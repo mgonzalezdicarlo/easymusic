@@ -24,19 +24,16 @@ diagram in [erd.md](./erd.md).
   catalog rows. For custom exercises, the API must ask for confirmation or archive the tracked
   exercise instead.
 
-## Adding Hanon exercises
+## Seeding the Hanon catalog
 
-The repository seeds only Hanon 1-3 as a reference and for tests. To add more:
+`npm run db:seed` loads all 60 Hanon exercises from `prisma/data/hanon-exercises.ts`. Titles are
+derived from the number ("Hanon No. 7"). It is safe to run repeatedly: new rows are inserted,
+existing rows get their title updated, and nothing is duplicated (rows use the stable id
+`hanon-<number>`). After seeding, the script checks that the database holds exactly 60 catalog
+exercises and fails if it does not. Inspect the `exercises` table with `npm run db:studio`.
 
-1. Open `prisma/data/hanon-exercises.ts`.
-2. Append an entry in number order, for example `{ number: 4, title: "Hanon No. 4" }`. Numbers must
-   be unique and between 1 and 60.
-3. Run `npm run db:seed`. It is safe to run repeatedly: new rows are inserted, existing rows get
-   their title updated, and nothing is duplicated (rows use the stable id `hanon-<number>`).
-4. Check the `exercises` table with `npm run db:studio`.
-
-To rename an exercise, change its title in the data file and seed again. Removing a catalog
-exercise is not done by the seed and needs a migration.
+To rename exercises, change how titles are built in the data file and seed again. Removing a
+catalog exercise is not done by the seed and needs a migration.
 
 A catalog for another source (for example Czerny) needs a migration that relaxes
 `exercises_source_owner_check`, plus an update to this document.

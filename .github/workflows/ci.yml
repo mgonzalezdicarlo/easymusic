@@ -107,6 +107,11 @@ jobs:
       - name: Apply database migrations
         run: npm run db:deploy
 
+      - name: Seed catalog data (twice, to prove idempotency)
+        run: |
+          npm run db:seed
+          npm run db:seed
+
       - name: Get Playwright version
         id: playwright-version
         run: echo "version=$(npx playwright --version | cut -d' ' -f2)" >> "$GITHUB_OUTPUT"
