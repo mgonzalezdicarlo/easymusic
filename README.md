@@ -37,10 +37,11 @@ GitHub-style activity heat map and in charts.
 - Tailwind CSS and shadcn/ui
 - PostgreSQL and Prisma
 - Zod for validation
+- Better Auth for authentication
 - Vitest, Testing Library and Playwright for testing
 - GitHub Actions for CI
 
-Planned in later epics: Better Auth and Recharts. See the
+Planned in later epics: Recharts. See the
 [architecture notes](./docs/architecture.md) and the [decision records](./docs/adr/README.md).
 
 ## Getting started
@@ -80,6 +81,9 @@ message if one is missing or invalid.
 | `NEXT_PUBLIC_APP_URL`  | Yes      | Public URL of the app, for example `http://localhost:3000` |
 | `NEXT_PUBLIC_APP_NAME` | No       | Display name. Defaults to `Piano Habit Tracker`            |
 | `DATABASE_URL`         | Yes      | PostgreSQL connection string (server only)                 |
+| `BETTER_AUTH_SECRET`   | Yes      | Secret that signs sessions, 32+ characters (server only)   |
+| `GITHUB_CLIENT_ID`     | No       | GitHub OAuth app id. Set with the secret to enable sign-in |
+| `GITHUB_CLIENT_SECRET` | No       | GitHub OAuth app secret (server only)                      |
 
 ## Database
 

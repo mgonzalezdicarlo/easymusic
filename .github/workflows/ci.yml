@@ -22,6 +22,7 @@ env:
   # Required by `prisma generate` (postinstall) and by the build. Only the E2E job has a
   # running database behind this URL.
   DATABASE_URL: postgresql://piano:piano@localhost:5432/piano_test
+  BETTER_AUTH_SECRET: ci-only-secret-not-for-production-0123456789abcdef
 
 jobs:
   quality:

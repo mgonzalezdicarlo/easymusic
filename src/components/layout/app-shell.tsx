@@ -1,6 +1,7 @@
 import { BottomNav } from "@/components/layout/bottom-nav";
 import { Brand } from "@/components/layout/brand";
 import { SidebarNav } from "@/components/layout/sidebar-nav";
+import { SignOutButton } from "@/components/layout/sign-out-button";
 import { ThemeToggle } from "@/components/layout/theme-toggle";
 
 export function AppShell({
@@ -20,6 +21,9 @@ export function AppShell({
           <Brand />
         </div>
         <SidebarNav />
+        <div className="border-sidebar-border border-t px-4 py-3">
+          <SignOutButton className="w-full justify-start" />
+        </div>
         <div className="border-sidebar-border flex items-center justify-between border-t px-4 py-3">
           <span className="text-muted-foreground text-xs font-medium">
             Theme
@@ -31,7 +35,10 @@ export function AppShell({
       <div className="flex min-w-0 flex-col">
         <header className="bg-background/95 sticky top-0 z-30 flex h-14 items-center justify-between border-b px-4 backdrop-blur md:hidden">
           <Brand />
-          <ThemeToggle />
+          <div className="flex items-center gap-2">
+            <ThemeToggle />
+            <SignOutButton />
+          </div>
         </header>
 
         <main

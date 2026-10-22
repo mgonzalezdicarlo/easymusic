@@ -42,4 +42,26 @@ describe("serverEnv", () => {
       /PostgreSQL connection string/,
     );
   });
+
+  it("rejects a BETTER_AUTH_SECRET that is too short", async () => {
+    vi.stubEnv("BETTER_AUTH_SECRET", "too-short");
+
+    await expect(loadServerEnv()).rejects.toThrow(/BETTER_AUTH_SECRET/);
+  });
+
+  it("requires the GitHub client id and secret together", async () => {
+    vi.stubEnv("GITHUB_CLIENT_ID", "id");
+    vi.stubEnv("GITHUB_CLIENT_SECRET", "");
+
+    await expect(loadServerEnv()).rejects.toThrow(/GITHUB_CLIENT_SECRET/);
+  });
+
+  it("treats blank GitHub settings as not configured", async () => {
+    vi.stubEnv("GITHUB_CLIENT_ID", "");
+    vi.stubEnv("GITHUB_CLIENT_SECRET", "");
+
+    const { serverEnv } = await loadServerEnv();
+
+    expect(serverEnv.GITHUB_CLIENT_ID).toBeUndefined();
+  });
 });
