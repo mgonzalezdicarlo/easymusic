@@ -1,14 +1,18 @@
+import { headers } from "next/headers";
+
 import { ApiError } from "@/server/api/errors";
+import { auth } from "@/server/auth/auth";
 
 export type AuthenticatedUser = { id: string };
 
 /**
- * Returns the signed-in user, or rejects with a 401 `ApiError`.
- *
- * Stub until E3-01 wires up Better Auth (ADR-0004). It fails closed: no request counts as
- * authenticated yet, so a route that calls it can never leak data by accident. E3-01 replaces
- * the body and keeps this signature.
+ * Returns the signed-in user, or rejects with a 401 `ApiError` (ADR-0004). The session is
+ * read from the request cookies and checked against the database on every call.
  */
-export function requireUser(): Promise<AuthenticatedUser> {
-  return Promise.reject(ApiError.unauthorized());
+export async function requireUser(): Promise<AuthenticatedUser> {
+  const session = await auth.api.getSession({ headers: await headers() });
+
+  if (!session) throw ApiError.unauthorized();
+
+  return { id: session.user.id };
 }

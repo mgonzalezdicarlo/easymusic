@@ -42,10 +42,15 @@ enum ExerciseSource {
 model User {
   id               String            @id @default(cuid())
   email            String            @unique
+  emailVerified    Boolean           @default(false)
   name             String
+  image            String?
   timezone         String            @default("UTC")
   dailyGoalMinutes Int               @default(30)
   createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @default(now()) @updatedAt
+  sessions         Session[]
+  accounts         Account[]
   practiceSessions PracticeSession[]
   userScales       UserScale[]
   ownedExercises   Exercise[]
@@ -54,6 +59,64 @@ model User {
   @@map("users")
 }
 
+// Better Auth tables (ADR-0004). Names and fields follow Better Auth's core schema.
+model Session {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  token     String   @unique
+  expiresAt DateTime
+  ipAddress String?
+  userAgent String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@map("sessions")
+}
+
+// Credentials (providerId "credential") hold the password hash; OAuth rows hold provider tokens.
+model Account {
+  id                    String    @id @default(cuid())
+  userId                String
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accountId             String
+  providerId            String
+  accessToken           String?
+  refreshToken          String?
+  idToken               String?
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  password              String?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  @@index([userId])
+  @@map("accounts")
+}
+
+model Verification {
+  id         String   @id @default(cuid())
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([identifier])
+  @@map("verifications")
+}
+
+// Rate limit counters, stored in the database so they hold across serverless instances.
+model RateLimit {
+  id          String @id
+  key         String @unique
+  count       Int
+  lastRequest BigInt
+
+  @@map("rate_limits")
+}
 model PracticeSession {
   id              String                  @id @default(cuid())
   userId          String

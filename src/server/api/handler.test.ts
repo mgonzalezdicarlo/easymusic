@@ -3,7 +3,6 @@ import { describe, expect, it } from "vitest";
 import { z } from "zod";
 
 import { ApiError, apiHandler, ok, parseJsonBody } from "@/server/api";
-import { requireUser } from "@/server/auth/require-user";
 import { createLogger, type LogLevel } from "@/server/logger";
 
 function testLogger() {
@@ -127,10 +126,9 @@ describe("apiHandler", () => {
     expect(JSON.stringify(lines[0].entry)).not.toContain("secret");
   });
 
-  it("answers 401 while requireUser is still a stub", async () => {
+  it("maps an unauthorized error to a 401", async () => {
     const GET = apiHandler(async () => {
-      await requireUser();
-      return ok({});
+      throw ApiError.unauthorized();
     });
 
     const response = await GET(

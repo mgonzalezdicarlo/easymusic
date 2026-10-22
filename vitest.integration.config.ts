@@ -28,6 +28,7 @@ export default defineConfig({
       NEXT_PUBLIC_APP_NAME: "Piano Habit Tracker",
       NEXT_PUBLIC_APP_URL: "http://localhost:3000",
       DATABASE_URL: databaseUrl,
+      BETTER_AUTH_SECRET: "test-secret-for-automated-tests-only-0123456789",
     },
   },
 });

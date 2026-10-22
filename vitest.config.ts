@@ -23,6 +23,7 @@ export default defineConfig({
       NEXT_PUBLIC_APP_NAME: "Piano Habit Tracker",
       NEXT_PUBLIC_APP_URL: "http://localhost:3000",
       DATABASE_URL: "postgresql://piano:piano@localhost:5432/piano_test",
+      BETTER_AUTH_SECRET: "test-secret-for-automated-tests-only-0123456789",
     },
     coverage: {
       provider: "v8",
