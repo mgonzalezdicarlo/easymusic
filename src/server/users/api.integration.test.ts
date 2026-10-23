@@ -302,4 +302,3 @@ describe("account deletion", () => {
     expect((await getMe()).status).toBe(401);
   });
 });
-
