@@ -19,7 +19,7 @@ import { MIN_PASSWORD_LENGTH } from "@/lib/auth-rules";
 export function SignUpForm({
   githubEnabled,
 }: Readonly<{ githubEnabled: boolean }>) {
-//  const router = useRouter();
+  //  const router = useRouter();
   const [errors, setErrors] = useState<FieldErrors>({});
   const [formError, setFormError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
