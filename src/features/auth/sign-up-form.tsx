@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+//import { useRouter } from "next/navigation";
 import { type FormEvent, useState } from "react";
 
 import { Button } from "@/components/ui/button";
@@ -19,7 +19,7 @@ import { MIN_PASSWORD_LENGTH } from "@/lib/auth-rules";
 export function SignUpForm({
   githubEnabled,
 }: Readonly<{ githubEnabled: boolean }>) {
-  const router = useRouter();
+//  const router = useRouter();
   const [errors, setErrors] = useState<FieldErrors>({});
   const [formError, setFormError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
@@ -45,8 +45,8 @@ export function SignUpForm({
       const { error } = await authClient.signUp.email(parsed.data);
 
       if (!error) {
-        router.push("/dashboard");
-        router.refresh();
+        // Full page load: the client router may have cached a signed-out redirect for /dashboard.
+        window.location.assign("/dashboard");
         return;
       }
 
