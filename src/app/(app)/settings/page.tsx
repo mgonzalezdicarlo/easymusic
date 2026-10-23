@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 
-import { ComingSoonCard } from "@/components/layout/coming-soon-card";
 import { PageHeader } from "@/components/layout/page-header";
+import { SettingsContent } from "@/features/settings/settings-content";
 
 export const metadata: Metadata = { title: "Settings" };
 
@@ -12,14 +13,18 @@ export default function SettingsPage() {
         title="Settings"
         description="Account, timezone and practice preferences."
       />
-      <ComingSoonCard
-        epic="Epic 3"
-        items={[
-          "Display name and timezone",
-          "Daily practice goal",
-          "Data export and account deletion",
-        ]}
-      />
+      <Suspense fallback={<SettingsSkeleton />}>
+        <SettingsContent />
+      </Suspense>
     </>
+  );
+}
+
+function SettingsSkeleton() {
+  return (
+    <div
+      aria-busy="true"
+      className="bg-muted h-80 max-w-xl animate-pulse rounded-xl"
+    />
   );
 }

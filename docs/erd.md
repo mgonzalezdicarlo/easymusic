@@ -23,6 +23,7 @@ erDiagram
     string name
     string timezone "IANA name, default UTC"
     int dailyGoalMinutes "1-1440, default 30"
+    datetime onboardedAt "null until first-run setup is done"
     datetime createdAt
   }
 
