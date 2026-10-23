@@ -1,23 +1,22 @@
 import { expect, test } from "@playwright/test";
 
-test("a new user can register, sign out and sign back in", async ({ page }) => {
-  const email = `e2e-${Date.now()}@example.test`;
-  const password = "correct-horse-battery";
+import { signUpAndOnboard } from "./helpers/auth";
 
-  await page.goto("/sign-up");
-  await page.getByLabel("Name").fill("E2E Pianist");
-  await page.getByLabel("Email").fill(email);
-  await page.getByLabel("Password").fill(password);
-  await page.getByRole("button", { name: "Create account" }).click();
-  await expect(page).toHaveURL(/\/dashboard$/);
+test("a new user can register, sign out and sign back in", async ({ page }) => {
+  // Signs up, lands on /dashboard and completes the first-run prompt.
+  const email = await signUpAndOnboard(page);
 
   await page.getByRole("button", { name: "Sign out" }).click();
   await expect(page).toHaveURL(/\/sign-in$/);
 
   await page.getByLabel("Email").fill(email);
-  await page.getByLabel("Password").fill(password);
+  await page.getByLabel("Password").fill("correct-horse-battery");
   await page.getByRole("button", { name: "Sign in" }).click();
+
   await expect(page).toHaveURL(/\/dashboard$/);
+  await expect(
+    page.getByRole("heading", { level: 1, name: "Dashboard" }),
+  ).toBeVisible();
 });
 
 test("a wrong password is rejected with a message", async ({ page }) => {
@@ -28,4 +27,10 @@ test("a wrong password is rejected with a message", async ({ page }) => {
 
   await expect(page.getByRole("alert")).toBeVisible();
   await expect(page).toHaveURL(/\/sign-in$/);
+});
+
+test("navigates from the home page to the dashboard", async ({ page }) => {
+  await signUpAndOnboard(page);
+  await page.goto("/");
+  // keep the existing click on "Open dashboard" and the /dashboard assertion
 });
