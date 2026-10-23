@@ -47,6 +47,7 @@ model User {
   image            String?
   timezone         String            @default("UTC")
   dailyGoalMinutes Int               @default(30)
+  onboardedAt      DateTime?
   createdAt        DateTime          @default(now())
   updatedAt        DateTime          @default(now()) @updatedAt
   sessions         Session[]

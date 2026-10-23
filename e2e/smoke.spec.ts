@@ -1,5 +1,7 @@
 import { expect, test } from "@playwright/test";
 
+import { signUpAndOnboard } from "./helpers/auth";
+
 test.describe("smoke", () => {
   test("home page loads", async ({ page }) => {
     await page.goto("/");
@@ -10,6 +12,7 @@ test.describe("smoke", () => {
   });
 
   test("navigates from the home page to the dashboard", async ({ page }) => {
+    await signUpAndOnboard(page);
     await page.goto("/");
     await page.getByRole("link", { name: "Open dashboard" }).click();
 
