@@ -30,7 +30,7 @@ export class ApiRequestError extends Error {
   }
 }
 
-async function send(path: string, init: RequestInit): Promise<void> {
+export async function send(path: string, init: RequestInit): Promise<void> {
   const response = await fetch(path, init);
 
   if (response.ok) return;

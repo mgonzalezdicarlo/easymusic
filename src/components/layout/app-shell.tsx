@@ -3,6 +3,7 @@ import { Brand } from "@/components/layout/brand";
 import { SidebarNav } from "@/components/layout/sidebar-nav";
 import { SignOutButton } from "@/components/layout/sign-out-button";
 import { ThemeToggle } from "@/components/layout/theme-toggle";
+import { LogPracticeButton } from "@/features/practice/log-practice-button";
 
 export function AppShell({
   children,
@@ -19,6 +20,9 @@ export function AppShell({
       <aside className="bg-sidebar text-sidebar-foreground border-sidebar-border hidden border-r md:sticky md:top-0 md:flex md:h-dvh md:flex-col">
         <div className="flex h-14 items-center px-6">
           <Brand />
+        </div>
+        <div className="px-3 pb-2">
+          <LogPracticeButton size="lg" className="w-full" />
         </div>
         <SidebarNav />
         <div className="border-sidebar-border border-t px-4 py-3">
@@ -48,6 +52,10 @@ export function AppShell({
         >
           {children}
         </main>
+      </div>
+
+      <div className="fixed right-4 bottom-[calc(4.25rem_+_env(safe-area-inset-bottom))] z-40 md:hidden">
+        <LogPracticeButton size="lg" className="shadow-lg" />
       </div>
 
       <BottomNav />
