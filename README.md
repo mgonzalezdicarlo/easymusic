@@ -4,8 +4,7 @@ A web app that helps pianists build a practice habit and measure real technical 
 practice, track every scale and exercise with clean versus maximum tempo, and see your progress in a
 GitHub-style activity heat map and in charts.
 
-> **Status:** early development. The project foundation (Epic 1) is in place, and features are being
-> built epic by epic.
+> **Status:** early development.
 
 ## Features
 
@@ -24,8 +23,8 @@ GitHub-style activity heat map and in charts.
 | Epic | Scope                                      | Status  |
 | ---- | ------------------------------------------ | ------- |
 | 1    | Project setup and architecture             | Done    |
-| 2    | Data models, database and backend API      | Planned |
-| 3    | Authentication and dashboard               | Planned |
+| 2    | Data models, database and backend API      | Done |
+| 3    | Authentication and dashboard               | Done |
 | 4    | Scale tracker                              | Planned |
 | 5    | Hanon and technical exercises              | Planned |
 | 6    | Progress analytics and charts              | Planned |
