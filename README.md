@@ -23,8 +23,8 @@ GitHub-style activity heat map and in charts.
 | Epic | Scope                                      | Status  |
 | ---- | ------------------------------------------ | ------- |
 | 1    | Project setup and architecture             | Done    |
-| 2    | Data models, database and backend API      | Done |
-| 3    | Authentication and dashboard               | Done |
+| 2    | Data models, database and backend API      | Done    |
+| 3    | Authentication and dashboard               | Done    |
 | 4    | Scale tracker                              | Planned |
 | 5    | Hanon and technical exercises              | Planned |
 | 6    | Progress analytics and charts              | Planned |
