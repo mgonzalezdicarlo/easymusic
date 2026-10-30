@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 
-import { ComingSoonCard } from "@/components/layout/coming-soon-card";
 import { PageHeader } from "@/components/layout/page-header";
+import { ScaleCatalogSection } from "@/features/scales/scale-catalog-section";
 
 export const metadata: Metadata = { title: "Scales" };
 
@@ -12,14 +13,18 @@ export default function ScalesPage() {
         title="Scales"
         description="Catalog and track every scale by key, mode, octaves and tempo."
       />
-      <ComingSoonCard
-        epic="Epic 4"
-        items={[
-          "Scale catalog by key and mode",
-          "Clean vs. max tempo logging",
-          "Progress toward target BPM",
-        ]}
-      />
+      <Suspense fallback={<CatalogSkeleton />}>
+        <ScaleCatalogSection />
+      </Suspense>
     </>
+  );
+}
+
+function CatalogSkeleton() {
+  return (
+    <div aria-busy="true" className="space-y-6">
+      <div className="bg-muted h-16 max-w-xl animate-pulse rounded-xl" />
+      <div className="bg-muted h-96 animate-pulse rounded-xl" />
+    </div>
   );
 }
