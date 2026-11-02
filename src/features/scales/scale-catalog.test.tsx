@@ -1,12 +1,15 @@
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { CatalogScale } from "@/features/scales/catalog";
+import type { ScaleSetup } from "@/features/scales/configuration";
 import { ScaleCatalog } from "@/features/scales/scale-catalog";
 
+const { refresh } = vi.hoisted(() => ({ refresh: vi.fn() }));
+
 vi.mock("next/navigation", () => ({
-  useRouter: () => ({ refresh: () => undefined }),
+  useRouter: () => ({ refresh }),
 }));
 
 const scales: CatalogScale[] = [
@@ -18,16 +21,41 @@ const scales: CatalogScale[] = [
   { id: "d-dorian", tonic: "D", mode: "DORIAN" },
 ];
 
-function setup(trackedCounts: Record<string, number> = {}) {
-  render(<ScaleCatalog scales={scales} trackedCounts={trackedCounts} />);
+const together2: ScaleSetup = {
+  id: "s1",
+  octaves: 2,
+  handsMode: "TOGETHER",
+  targetBpm: 100,
+  status: "ACTIVE",
+};
+
+function setup(setups: Record<string, ScaleSetup[]> = {}) {
+  render(<ScaleCatalog scales={scales} setups={setups} />);
 
   return userEvent.setup();
 }
+
+beforeEach(() => {
+  refresh.mockClear();
+});
 
 const status = () => screen.getByRole("status");
 const searchBox = () => screen.getByLabelText("Search scales");
 const trackButton = (name: string) =>
   screen.getByRole("button", { name: `Track this scale: ${name}` });
+const addSetupButton = (name: string) =>
+  screen.getByRole("button", { name: `Add another setup: ${name}` });
+
+async function typeBpm(
+  user: ReturnType<typeof userEvent.setup>,
+  dialog: HTMLElement,
+  value: string,
+) {
+  const field = within(dialog).getByLabelText("Target tempo (BPM)");
+
+  await user.clear(field);
+  await user.type(field, value);
+}
 
 describe("ScaleCatalog", () => {
   it("lists every scale, grouped by key", () => {
@@ -91,8 +119,8 @@ describe("ScaleCatalog", () => {
     expect(searchBox()).toHaveValue("");
   });
 
-  it("marks tracked scales and only offers to track the others", () => {
-    setup({ "a-minor": 1 });
+  it("marks tracked scales, lists their setups and offers to add another", () => {
+    setup({ "a-minor": [together2] });
 
     expect(screen.getAllByText("Tracked")).toHaveLength(1);
     expect(
@@ -100,11 +128,44 @@ describe("ScaleCatalog", () => {
         name: "Track this scale: A natural minor",
       }),
     ).not.toBeInTheDocument();
+    expect(addSetupButton("A natural minor")).toBeEnabled();
     expect(trackButton("C major")).toBeEnabled();
+
+    const list = screen.getByRole("list", {
+      name: "Setups for A natural minor",
+    });
+
+    expect(list).toHaveTextContent("2 octaves, hands together");
+    expect(list).toHaveTextContent("Target 100 BPM");
     expect(status()).toHaveTextContent("Showing 6 of 6 scales · 1 tracked");
   });
 
-  it("tracks a scale with the default setup and marks it", async () => {
+  it("counts setups of the same scale", () => {
+    setup({
+      "c-major": [
+        together2,
+        { ...together2, id: "s2", octaves: 4, handsMode: "SEPARATE" },
+      ],
+    });
+
+    expect(screen.getByText("Tracked · 2 setups")).toBeInTheDocument();
+    expect(status()).toHaveTextContent("1 tracked");
+  });
+
+  it("does not count a scale with only archived setups as tracked", () => {
+    setup({ "a-minor": [{ ...together2, status: "ARCHIVED" }] });
+
+    expect(status()).toHaveTextContent("Showing 6 of 6 scales · 0 tracked");
+    expect(trackButton("A natural minor")).toBeEnabled();
+    expect(screen.getByText(/Archived/)).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", {
+        name: "Restore setup: A natural minor, 2 octaves, hands together",
+      }),
+    ).toBeEnabled();
+  });
+
+  it("tracks a scale with the chosen configuration", async () => {
     const fetchSpy = vi
       .spyOn(globalThis, "fetch")
       .mockResolvedValue(new Response(null, { status: 201 }));
@@ -112,21 +173,53 @@ describe("ScaleCatalog", () => {
 
     await user.click(trackButton("C major"));
 
-    expect(await screen.findByText("Tracked")).toBeInTheDocument();
+    const dialog = await screen.findByRole("dialog", { name: "Track C major" });
+
+    await user.selectOptions(within(dialog).getByLabelText("Octaves"), "4");
+    await user.selectOptions(
+      within(dialog).getByLabelText("Hands"),
+      "SEPARATE",
+    );
+    await typeBpm(user, dialog, "80");
+    await user.click(
+      within(dialog).getByRole("button", { name: "Track scale" }),
+    );
+
+    await waitFor(() => expect(fetchSpy).toHaveBeenCalledTimes(1));
     expect(fetchSpy).toHaveBeenCalledWith(
       "/api/user-scales",
       expect.objectContaining({ method: "POST" }),
     );
     expect(JSON.parse(String(fetchSpy.mock.calls[0][1]?.body))).toEqual({
       scaleId: "c-major",
-      octaves: 2,
-      handsMode: "TOGETHER",
-      targetBpm: 100,
+      octaves: 4,
+      handsMode: "SEPARATE",
+      targetBpm: 80,
     });
-    expect(status()).toHaveTextContent("1 tracked");
+    await waitFor(() => expect(refresh).toHaveBeenCalledTimes(1));
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
   });
 
-  it("keeps the button when tracking fails", async () => {
+  it("blocks a duplicate configuration before calling the API", async () => {
+    const fetchSpy = vi.spyOn(globalThis, "fetch");
+    const user = setup({ "c-major": [together2] });
+
+    await user.click(addSetupButton("C major"));
+
+    const dialog = await screen.findByRole("dialog");
+
+    // The default setup (2 octaves, hands together) is already tracked.
+    await user.click(
+      within(dialog).getByRole("button", { name: "Track scale" }),
+    );
+
+    expect(within(dialog).getByRole("alert")).toHaveTextContent(
+      "You already track C major with 2 octaves, hands together.",
+    );
+    expect(fetchSpy).not.toHaveBeenCalled();
+  });
+
+  it("keeps the dialog open and shows the server message when tracking fails", async () => {
     const fetchSpy = vi.spyOn(globalThis, "fetch").mockResolvedValue(
       new Response(
         JSON.stringify({
@@ -139,8 +232,89 @@ describe("ScaleCatalog", () => {
 
     await user.click(trackButton("C major"));
 
+    const dialog = await screen.findByRole("dialog");
+
+    await user.click(
+      within(dialog).getByRole("button", { name: "Track scale" }),
+    );
+
+    expect(await within(dialog).findByRole("alert")).toHaveTextContent(
+      "Already tracked.",
+    );
+    expect(fetchSpy).toHaveBeenCalledTimes(1);
+    expect(refresh).not.toHaveBeenCalled();
+  });
+
+  it("edits a setup and sends only the changed fields", async () => {
+    const fetchSpy = vi
+      .spyOn(globalThis, "fetch")
+      .mockResolvedValue(new Response(null, { status: 200 }));
+    const user = setup({ "c-major": [together2] });
+
+    await user.click(
+      screen.getByRole("button", {
+        name: "Edit setup: C major, 2 octaves, hands together",
+      }),
+    );
+
+    const dialog = await screen.findByRole("dialog", {
+      name: "Edit C major setup",
+    });
+
+    await typeBpm(user, dialog, "120");
+    await user.click(
+      within(dialog).getByRole("button", { name: "Save changes" }),
+    );
+
     await waitFor(() => expect(fetchSpy).toHaveBeenCalledTimes(1));
-    await waitFor(() => expect(trackButton("C major")).toBeEnabled());
-    expect(screen.queryByText("Tracked")).not.toBeInTheDocument();
+    expect(fetchSpy).toHaveBeenCalledWith(
+      "/api/user-scales/s1",
+      expect.objectContaining({ method: "PATCH" }),
+    );
+    expect(JSON.parse(String(fetchSpy.mock.calls[0][1]?.body))).toEqual({
+      targetBpm: 120,
+    });
+    await waitFor(() => expect(refresh).toHaveBeenCalledTimes(1));
+  });
+
+  it("archives a setup without deleting it", async () => {
+    const fetchSpy = vi
+      .spyOn(globalThis, "fetch")
+      .mockResolvedValue(new Response(null, { status: 200 }));
+    const user = setup({ "c-major": [together2] });
+
+    await user.click(
+      screen.getByRole("button", {
+        name: "Archive setup: C major, 2 octaves, hands together",
+      }),
+    );
+
+    await waitFor(() => expect(fetchSpy).toHaveBeenCalledTimes(1));
+    expect(fetchSpy).toHaveBeenCalledWith(
+      "/api/user-scales/s1",
+      expect.objectContaining({ method: "PATCH" }),
+    );
+    expect(JSON.parse(String(fetchSpy.mock.calls[0][1]?.body))).toEqual({
+      status: "ARCHIVED",
+    });
+    await waitFor(() => expect(refresh).toHaveBeenCalledTimes(1));
+  });
+
+  it("restores an archived setup", async () => {
+    const fetchSpy = vi
+      .spyOn(globalThis, "fetch")
+      .mockResolvedValue(new Response(null, { status: 200 }));
+    const user = setup({ "c-major": [{ ...together2, status: "ARCHIVED" }] });
+
+    await user.click(
+      screen.getByRole("button", {
+        name: "Restore setup: C major, 2 octaves, hands together",
+      }),
+    );
+
+    await waitFor(() => expect(fetchSpy).toHaveBeenCalledTimes(1));
+    expect(JSON.parse(String(fetchSpy.mock.calls[0][1]?.body))).toEqual({
+      status: "ACTIVE",
+    });
   });
 });

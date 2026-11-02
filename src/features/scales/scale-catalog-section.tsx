@@ -4,7 +4,7 @@ import { getScaleCatalog } from "@/server/scales/catalog";
 
 export async function ScaleCatalogSection() {
   const user = await requirePageUser();
-  const { scales, trackedCounts } = await getScaleCatalog(user.id);
+  const { scales, setups } = await getScaleCatalog(user.id);
 
-  return <ScaleCatalog scales={scales} trackedCounts={trackedCounts} />;
+  return <ScaleCatalog scales={scales} setups={setups} />;
 }
