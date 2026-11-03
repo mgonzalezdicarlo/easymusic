@@ -9,6 +9,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type {
   DialogState,
   SessionDraft,
@@ -16,6 +17,8 @@ import type {
 } from "@/features/practice/model";
 import { usePractice } from "@/features/practice/practice-provider";
 import { SessionForm } from "@/features/practice/session-form";
+import type { LoggableScale } from "@/features/scales/practice";
+import { ScalePracticeForm } from "@/features/scales/scale-practice-form";
 import {
   formatMinutes,
   formatSessionDate,
@@ -23,11 +26,16 @@ import {
 } from "@/lib/practice-session";
 
 /** The log, edit and delete dialogs. Mounted once for the whole app shell. */
-export function PracticeDialogs({ timezone }: Readonly<{ timezone: string }>) {
+export function PracticeDialogs({
+  timezone,
+  scales,
+}: Readonly<{ timezone: string; scales: readonly LoggableScale[] }>) {
   const { dialog } = usePractice();
 
   if (dialog.type === "create" || dialog.type === "edit") {
-    return <SessionDialog dialog={dialog} timezone={timezone} />;
+    return (
+      <SessionDialog dialog={dialog} timezone={timezone} scales={scales} />
+    );
   }
 
   if (dialog.type === "delete")
@@ -39,9 +47,11 @@ export function PracticeDialogs({ timezone }: Readonly<{ timezone: string }>) {
 function SessionDialog({
   dialog,
   timezone,
+  scales,
 }: Readonly<{
   dialog: Extract<DialogState, { type: "create" | "edit" }>;
   timezone: string;
+  scales: readonly LoggableScale[];
 }>) {
   const { closeDialog, saveSession } = usePractice();
   const today = todayInTimezone(timezone);
@@ -56,6 +66,17 @@ function SessionDialog({
           notes: target.notes ?? "",
         }
       : { date: today, duration: "", notes: "" });
+  const form = (
+    <SessionForm
+      today={today}
+      initial={initial}
+      durationLocked={locked}
+      failure={dialog.failure}
+      submitLabel={target ? "Save changes" : "Log practice"}
+      onSubmit={(values) => void saveSession(target, values)}
+      onCancel={closeDialog}
+    />
+  );
 
   return (
     <Dialog
@@ -64,7 +85,7 @@ function SessionDialog({
         if (!open) closeDialog();
       }}
     >
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="max-h-[calc(100dvh-2rem)] overflow-y-auto sm:max-w-md">
         <DialogHeader>
           <DialogTitle>
             {target ? "Edit practice session" : "Log practice"}
@@ -75,15 +96,26 @@ function SessionDialog({
               : "How long did you play? Pick an earlier date to log past practice."}
           </DialogDescription>
         </DialogHeader>
-        <SessionForm
-          today={today}
-          initial={initial}
-          durationLocked={locked}
-          failure={dialog.failure}
-          submitLabel={target ? "Save changes" : "Log practice"}
-          onSubmit={(values) => void saveSession(target, values)}
-          onCancel={closeDialog}
-        />
+        {target ? (
+          form
+        ) : (
+          <Tabs defaultValue="session">
+            <TabsList className="w-full">
+              <TabsTrigger value="session">Quick log</TabsTrigger>
+              <TabsTrigger value="scales">Scales</TabsTrigger>
+            </TabsList>
+            <TabsContent value="session" keepMounted className="pt-2">
+              {form}
+            </TabsContent>
+            <TabsContent value="scales" keepMounted className="pt-2">
+              <ScalePracticeForm
+                scales={scales}
+                onDone={closeDialog}
+                onCancel={closeDialog}
+              />
+            </TabsContent>
+          </Tabs>
+        )}
       </DialogContent>
     </Dialog>
   );

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Suspense } from "react";
 
 import { PageHeader } from "@/components/layout/page-header";
+import { RecentScaleEntriesSection } from "@/features/scales/recent-scale-entries-section";
 import { ScaleCatalogSection } from "@/features/scales/scale-catalog-section";
 
 export const metadata: Metadata = { title: "Scales" };
@@ -13,9 +14,14 @@ export default function ScalesPage() {
         title="Scales"
         description="Catalog and track every scale by key, mode, octaves and tempo."
       />
-      <Suspense fallback={<CatalogSkeleton />}>
-        <ScaleCatalogSection />
-      </Suspense>
+      <div className="space-y-6">
+        <Suspense fallback={null}>
+          <RecentScaleEntriesSection />
+        </Suspense>
+        <Suspense fallback={<CatalogSkeleton />}>
+          <ScaleCatalogSection />
+        </Suspense>
+      </div>
     </>
   );
 }
