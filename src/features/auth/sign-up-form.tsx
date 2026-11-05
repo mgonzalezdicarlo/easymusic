@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-//import { useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { type FormEvent, useState } from "react";
 
 import { Button } from "@/components/ui/button";
@@ -23,6 +23,7 @@ export function SignUpForm({
   const [errors, setErrors] = useState<FieldErrors>({});
   const [formError, setFormError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
+  const router = useRouter();
 
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -46,7 +47,7 @@ export function SignUpForm({
 
       if (!error) {
         // Full page load: the client router may have cached a signed-out redirect for /dashboard.
-        window.location.assign("/dashboard");
+        router.push("/dashboard");
         return;
       }
 

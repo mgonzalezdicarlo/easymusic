@@ -27,7 +27,7 @@ function assertTempoOrder(cleanBpm: number, maxBpm: number) {
  * Session duration rule: with at least one entry, the session duration is the sum of the
  * entries' durations. With none, the stored (manual) value is kept. Returns the duration.
  */
-async function syncSessionDuration(tx: Db, sessionId: string) {
+export async function syncSessionDuration(tx: Db, sessionId: string) {
   const scale = await tx.scalePracticeEntry.aggregate({
     where: { sessionId },
     _count: true,
